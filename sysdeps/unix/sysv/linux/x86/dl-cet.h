@@ -30,3 +30,13 @@ dl_cet_lock_cet (void)
 {
   return (int) INTERNAL_SYSCALL_CALL (arch_prctl, ARCH_CET_LOCK, 0);
 }
+
+static inline int __attribute__ ((always_inline))
+dl_cet_mark_legacy_code (unsigned long addr, unsigned long size, unsigned long set)
+{
+  unsigned long payload[3];
+  payload[0] = addr;
+  payload[1] = size;
+  payload[2] = set;
+  return (int) INTERNAL_SYSCALL_CALL (arch_prctl, ARCH_CET_MARK_LEGACY_CODE, payload);
+}

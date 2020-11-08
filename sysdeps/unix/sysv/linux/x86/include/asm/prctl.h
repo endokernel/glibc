@@ -24,4 +24,6 @@
      OUT: allocated shadow stack address: *addr.
  */
 # define ARCH_CET_ALLOC_SHSTK	0x3004
+
+# define ARCH_CET_MARK_LEGACY_CODE 0x3007
 #endif /* ARCH_CET_STATUS */

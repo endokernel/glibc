@@ -32,6 +32,25 @@
 # error GNU_PROPERTY_X86_FEATURE_1_SHSTK != X86_FEATURE_1_SHSTK
 #endif
 
+static int
+dl_cet_mark_legacy_region (struct link_map *l)
+{
+  /* Mark PT_LOAD segments with PF_X in legacy code page bitmap.  */
+  size_t i, phnum = l->l_phnum;
+  const ElfW(Phdr) *phdr = l->l_phdr;
+  for (i = 0; i < phnum; i++)
+    if (phdr[i].p_type == PT_LOAD && (phdr[i].p_flags & PF_X))
+      {
+	/* One bit in legacy bitmap represents a page.  */
+	ElfW(Addr) start = (phdr[i].p_vaddr + l->l_addr);
+	ElfW(Addr) len = (phdr[i].p_memsz);
+
+	dl_cet_mark_legacy_code(start, len, 1);
+      }
+
+  return 0;
+}
+
 /* Check if object M is compatible with CET.  */
 
 static void
@@ -45,182 +64,53 @@ dl_cet_check (struct link_map *m, const char *program)
     = GL(dl_x86_feature_control).shstk;
 
   /* No legacy object check if both IBT and SHSTK are always on.  */
+  // Should not compile GLIBC in this mode!!!!
   if (enable_ibt_type == cet_always_on
       && enable_shstk_type == cet_always_on)
     return;
 
-  /* Check if IBT is enabled by kernel.  */
-  bool ibt_enabled
-    = (GL(dl_x86_feature_1) & GNU_PROPERTY_X86_FEATURE_1_IBT) != 0;
-  /* Check if SHSTK is enabled by kernel.  */
-  bool shstk_enabled
-    = (GL(dl_x86_feature_1) & GNU_PROPERTY_X86_FEATURE_1_SHSTK) != 0;
-
-  if (ibt_enabled || shstk_enabled)
+  // FORCE CET MODE DESPITE HEADER
+  // better way is to modify this flag by our loader
+  if (1)
     {
       struct link_map *l = NULL;
-      unsigned int ibt_legacy = 0, shstk_legacy = 0;
-      bool found_ibt_legacy = false, found_shstk_legacy = false;
-
-      /* Check if IBT and SHSTK are enabled in object.  */
-      bool enable_ibt = (ibt_enabled
-			 && enable_ibt_type != cet_always_off);
-      bool enable_shstk = (shstk_enabled
-			   && enable_shstk_type != cet_always_off);
-      if (program)
-	{
-	  /* Enable IBT and SHSTK only if they are enabled in executable.
-	     NB: IBT and SHSTK may be disabled by environment variable:
-
-	     GLIBC_TUNABLES=glibc.cpu.hwcaps=-IBT,-SHSTK
-	   */
-	  enable_ibt &= (CPU_FEATURE_USABLE (IBT)
-			 && (enable_ibt_type == cet_always_on
-			     || (m->l_cet & lc_ibt) != 0));
-	  enable_shstk &= (CPU_FEATURE_USABLE (SHSTK)
-			   && (enable_shstk_type == cet_always_on
-			       || (m->l_cet & lc_shstk) != 0));
-	}
 
       /* ld.so is CET-enabled by kernel.  But shared objects may not
 	 support IBT nor SHSTK.  */
-      if (enable_ibt || enable_shstk)
+      if (1)
 	{
 	  unsigned int i;
 
 	  i = m->l_searchlist.r_nlist;
 	  while (i-- > 0)
 	    {
-	      /* Check each shared object to see if IBT and SHSTK are
-		 enabled.  */
 	      l = m->l_initfini[i];
-
-	      if (l->l_init_called)
-		continue;
-
+	      if (l->l_init_called || (l->l_cet & lc_ibt))
+	        continue;
 #ifdef SHARED
-	      /* Skip CET check for ld.so since ld.so is CET-enabled.
-		 CET will be disabled later if CET isn't enabled in
-		 executable.  */
 	      if (l == &GL(dl_rtld_map)
-		  ||  l->l_real == &GL(dl_rtld_map)
-		  || (program && l == m))
-		continue;
+	         || l->l_real == &GL(dl_rtld_map)
+		 || (program && l == m))
+		 continue;
 #endif
-
-	      /* IBT is enabled only if it is enabled in executable as
-		 well as all shared objects.  */
-	      enable_ibt &= (enable_ibt_type == cet_always_on
-			     || (l->l_cet & lc_ibt) != 0);
-	      if (!found_ibt_legacy && enable_ibt != ibt_enabled)
-		{
-		  found_ibt_legacy = true;
-		  ibt_legacy = i;
-		}
-
-	      /* SHSTK is enabled only if it is enabled in executable as
-		 well as all shared objects.  */
-	      enable_shstk &= (enable_shstk_type == cet_always_on
-			       || (l->l_cet & lc_shstk) != 0);
-	      if (enable_shstk != shstk_enabled)
-		{
-		  found_shstk_legacy = true;
-		  shstk_legacy = i;
-		}
-	    }
-	}
-
-      bool cet_feature_changed = false;
-
-      if (enable_ibt != ibt_enabled || enable_shstk != shstk_enabled)
-	{
-	  if (!program)
-	    {
-	      if (enable_ibt_type != cet_permissive)
-		{
-		  /* When IBT is enabled, we cannot dlopen a shared
-		     object without IBT.  */
-		  if (found_ibt_legacy)
-		    _dl_signal_error (0,
-				      m->l_initfini[ibt_legacy]->l_name,
-				      "dlopen",
-				      N_("rebuild shared object with IBT support enabled"));
-		}
-
-	      if (enable_shstk_type != cet_permissive)
-		{
-		  /* When SHSTK is enabled, we cannot dlopen a shared
-		     object without SHSTK.  */
-		  if (found_shstk_legacy)
-		    _dl_signal_error (0,
-				      m->l_initfini[shstk_legacy]->l_name,
-				      "dlopen",
-				      N_("rebuild shared object with SHSTK support enabled"));
-		}
-
-	      if (enable_ibt_type != cet_permissive
-		  && enable_shstk_type != cet_permissive)
-		return;
-	    }
-
-	  /* Disable IBT and/or SHSTK if they are enabled by kernel, but
-	     disabled in executable or shared objects.  */
-	  unsigned int cet_feature = 0;
-
-	  if (!enable_ibt)
-	    cet_feature |= GNU_PROPERTY_X86_FEATURE_1_IBT;
-	  if (!enable_shstk)
-	    cet_feature |= GNU_PROPERTY_X86_FEATURE_1_SHSTK;
-
-	  int res = dl_cet_disable_cet (cet_feature);
-	  if (res != 0)
-	    {
-	      if (program)
-		_dl_fatal_printf ("%s: can't disable CET\n", program);
-	      else
-		{
-		  if (found_ibt_legacy)
-		    l = m->l_initfini[ibt_legacy];
-		  else
-		    l = m->l_initfini[shstk_legacy];
-		  _dl_signal_error (-res, l->l_name, "dlopen",
-				    N_("can't disable CET"));
-		}
-	    }
-
-	  /* Clear the disabled bits in dl_x86_feature_1.  */
-	  GL(dl_x86_feature_1) &= ~cet_feature;
-
-	  cet_feature_changed = true;
-	}
-
-#ifdef SHARED
-      if (program && (ibt_enabled || shstk_enabled))
-	{
-	  if ((!ibt_enabled
-	       || enable_ibt_type != cet_permissive)
-	      && (!shstk_enabled
-		  || enable_shstk_type != cet_permissive))
-	    {
-	      /* Lock CET if IBT or SHSTK is enabled in executable unless
-	         IBT or SHSTK is enabled permissively.  */
-	      int res = dl_cet_lock_cet ();
+	      int res = dl_cet_mark_legacy_region (l);
 	      if (res != 0)
-		_dl_fatal_printf ("%s: can't lock CET\n", program);
+	        {
+		  if (program)
+		    _dl_fatal_printf ("%s: failed to mark legacy code region\n", l->l_name);
+		  else 
+		    _dl_signal_error (-res, l->l_name, "dlopen",
+					  N_("failed to mark legacy code region"));
+		}
 	    }
-
-	  /* Set feature_1 if IBT or SHSTK is enabled in executable.  */
-	  cet_feature_changed = true;
 	}
-#endif
 
-      if (cet_feature_changed)
-	{
+	  // CET will be enabled anyway, because our loader has CET enabled
+      if (1)
+	{ 
 	  unsigned int feature_1 = 0;
-	  if (enable_ibt)
-	    feature_1 |= GNU_PROPERTY_X86_FEATURE_1_IBT;
-	  if (enable_shstk)
-	    feature_1 |= GNU_PROPERTY_X86_FEATURE_1_SHSTK;
+	  feature_1 |= GNU_PROPERTY_X86_FEATURE_1_IBT;
+	  feature_1 |= GNU_PROPERTY_X86_FEATURE_1_SHSTK;
 	  struct pthread *self = THREAD_SELF;
 	  THREAD_SETMEM (self, header.feature_1, feature_1);
 	}
