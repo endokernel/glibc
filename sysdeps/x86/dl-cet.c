@@ -89,8 +89,7 @@ dl_cet_check (struct link_map *m, const char *program)
 	        continue;
 #ifdef SHARED
 	      if (l == &GL(dl_rtld_map)
-	         || l->l_real == &GL(dl_rtld_map)
-		 || (program && l == m))
+	         || l->l_real == &GL(dl_rtld_map))
 		 continue;
 #endif
 	      int res = dl_cet_mark_legacy_region (l);
