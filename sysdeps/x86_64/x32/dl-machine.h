@@ -40,6 +40,7 @@
 .globl _start\n\
 .globl _dl_start_user\n\
 _start:\n\
+	endbr32\n\
 	movl %esp, %edi\n\
 	call _dl_start\n\
 _dl_start_user:\n\

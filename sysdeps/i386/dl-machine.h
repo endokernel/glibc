@@ -159,6 +159,7 @@ extern ElfW(Addr) _dl_profile_fixup (struct link_map *l,
 .globl _start\n\
 .globl _dl_start_user\n\
 _start:\n\
+	endbr32\n\
 	movl %esp, %eax\n\
         subl $12, %esp\n\
         pushl %eax\n\

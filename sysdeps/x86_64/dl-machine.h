@@ -144,6 +144,7 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
 .globl _start\n\
 .globl _dl_start_user\n\
 _start:\n\
+	endbr64\n\
 	movq %rsp, %rdi\n\
 	call _dl_start\n\
 _dl_start_user:\n\
