@@ -73,7 +73,7 @@ ENTRY(__getcontext)
 	mov	%RSP_LP, %RSI_LP
 	movl	$ARCH_CET_STATUS, %edi
 	movl	$__NR_arch_prctl, %eax
-	syscall
+	SYSCALL_TRAP
 	testq	%rax, %rax
 	jz	L(continue_no_err)
 
@@ -125,7 +125,7 @@ L(no_shstk):
 #endif
 	movl	$_NSIG8,%r10d
 	movl	$__NR_rt_sigprocmask, %eax
-	syscall
+	SYSCALL_TRAP
 	cmpq	$-4095, %rax		/* Check %rax for error.  */
 	jae	SYSCALL_ERROR_LABEL	/* Jump to error handler if error.  */
 

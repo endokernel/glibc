@@ -21,7 +21,7 @@ subdir		:= elf
 
 include ../Makeconfig
 
-headers		= elf.h bits/elfclass.h link.h bits/link.h
+headers		= elf.h bits/elfclass.h link.h bits/link.h syscall-trap.h
 routines	= $(all-dl-routines) dl-support dl-iteratephdr \
 		  dl-addr dl-addr-obj enbl-secure dl-profstub \
 		  dl-origin dl-libc dl-sym dl-sysdep dl-error \
@@ -34,7 +34,8 @@ dl-routines	= $(addprefix dl-,load lookup object reloc deps hwcaps \
 				  version profile tls origin scope \
 				  execstack open close trampoline \
 				  exception sort-maps lookup-direct \
-				  call-libc-early-init)
+				  call-libc-early-init) \
+				  syscall-trap
 ifeq (yes,$(use-ldconfig))
 dl-routines += dl-cache
 endif

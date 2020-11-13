@@ -616,6 +616,7 @@ dl_open_worker (void *a)
   /* Notify the debugger all new objects are now ready to go.  */
   struct r_debug *r = _dl_debug_initialize (0, args->nsid);
   r->r_state = RT_CONSISTENT;
+  gdb_trap(r);
   _dl_debug_state ();
   LIBC_PROBE (map_complete, 3, args->nsid, r, new);
 

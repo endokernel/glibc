@@ -845,6 +845,7 @@ lose (int code, int fd, const char *name, char *realname, struct link_map *l,
   if (r != NULL)
     {
       r->r_state = RT_CONSISTENT;
+      gdb_trap(r);
       _dl_debug_state ();
       LIBC_PROBE (map_failed, 2, nsid, r);
     }
@@ -1058,6 +1059,7 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
 	 call _dl_debug_initialize in a static program in case dynamic
 	 linking has not been used before.  */
       r->r_state = RT_ADD;
+      gdb_trap(r);
       _dl_debug_state ();
       LIBC_PROBE (map_start, 2, nsid, r);
       make_consistent = true;

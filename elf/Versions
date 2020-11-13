@@ -37,6 +37,9 @@ libc {
 ld {
   GLIBC_2.0 {
     _r_debug;
+
+    syscall_trap;
+    gdb_trap;
   }
   GLIBC_2.1 {
     # functions used in other libraries

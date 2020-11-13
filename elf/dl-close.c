@@ -499,6 +499,7 @@ _dl_close_worker (struct link_map *map, bool force)
   /* Notify the debugger we are about to remove some loaded objects.  */
   struct r_debug *r = _dl_debug_initialize (0, nsid);
   r->r_state = RT_DELETE;
+  gdb_trap(r);
   _dl_debug_state ();
   LIBC_PROBE (unmap_start, 2, nsid, r);
 
@@ -813,6 +814,7 @@ _dl_close_worker (struct link_map *map, bool force)
 
   /* Notify the debugger those objects are finalized and gone.  */
   r->r_state = RT_CONSISTENT;
+  gdb_trap(r);
   _dl_debug_state ();
   LIBC_PROBE (unmap_complete, 2, nsid, r);
 

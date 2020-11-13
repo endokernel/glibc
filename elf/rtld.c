@@ -1734,6 +1734,7 @@ of this helper program; chances are you did not intend to run this program.\n\
 
   /* We start adding objects.  */
   r->r_state = RT_ADD;
+  gdb_trap(r);
   _dl_debug_state ();
   LIBC_PROBE (init_start, 2, LM_ID_BASE, r);
 
@@ -2444,6 +2445,7 @@ of this helper program; chances are you did not intend to run this program.\n\
      the address since by now the variable might be in another object.  */
   r = _dl_debug_initialize (0, LM_ID_BASE);
   r->r_state = RT_CONSISTENT;
+  gdb_trap(r);
   _dl_debug_state ();
   LIBC_PROBE (init_complete, 2, LM_ID_BASE, r);
 

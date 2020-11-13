@@ -2,6 +2,8 @@ libc {
   GLIBC_2.0 {
     # helper functions
     __libc_init_first; __libc_start_main;
+
+    syscall_trap;
   }
   GLIBC_2.1 {
     # New special glibc functions.

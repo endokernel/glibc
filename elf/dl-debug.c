@@ -73,3 +73,11 @@ _dl_debug_state (void)
 {
 }
 rtld_hidden_def (_dl_debug_state)
+
+#ifdef SHARED
+void
+__attribute__((weak))
+gdb_trap (struct r_debug* target)
+{
+}
+#endif

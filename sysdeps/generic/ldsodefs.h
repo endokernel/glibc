@@ -1034,6 +1034,12 @@ extern void _dl_sort_maps (struct link_map **maps, unsigned int nmaps,
 extern void _dl_debug_state (void);
 rtld_hidden_proto (_dl_debug_state)
 
+# ifdef SHARED
+extern void gdb_trap (struct r_debug* target) __attribute__((weak));
+# else
+#  define gdb_trap(r) do {} while (0)
+# endif
+
 /* Initialize `struct r_debug' if it has not already been done.  The
    argument is the run-time load address of the dynamic linker, to be put
    in the `r_ldbase' member.  Returns the address of the structure.  */

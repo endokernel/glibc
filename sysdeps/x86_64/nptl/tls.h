@@ -29,6 +29,7 @@
 # include <libc-pointer-arith.h> /* For cast_to_integer.  */
 # include <kernel-features.h>
 # include <dl-dtv.h>
+# include <syscall-trap.h>
 
 /* Replacement type for __m128 since this file is included by ld.so,
    which is compiled with -mno-sse.  It must not change the alignment
@@ -161,7 +162,7 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
      _head->self = _thrdescr;						      \
 									      \
      /* It is a simple syscall to set the %fs value for the thread.  */	      \
-     asm volatile ("syscall"						      \
+     asm volatile (SYSCALL_TRAP					      \
 		   : "=a" (_result)					      \
 		   : "0" ((unsigned long int) __NR_arch_prctl),		      \
 		     "D" ((unsigned long int) ARCH_SET_FS),		      \

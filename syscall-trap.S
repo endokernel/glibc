@@ -5,7 +5,8 @@
 
 syscall_trap:
 	.cfi_startproc
+	endbr64
 	syscall
-	retq
+	retq $128
 	.cfi_endproc
 	.size syscall_trap,.-syscall_trap
