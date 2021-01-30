@@ -69,9 +69,14 @@ dl_cet_check (struct link_map *m, const char *program)
       && enable_shstk_type == cet_always_on)
     return;
 
-  // FORCE CET MODE DESPITE HEADER
-  // better way is to modify this flag by our loader
-  if (1)
+    /* Check if IBT is enabled by kernel.  */
+  bool ibt_enabled
+    = (GL(dl_x86_feature_1) & GNU_PROPERTY_X86_FEATURE_1_IBT) != 0;
+  /* Check if SHSTK is enabled by kernel.  */
+  bool shstk_enabled
+    = (GL(dl_x86_feature_1) & GNU_PROPERTY_X86_FEATURE_1_SHSTK) != 0;
+
+  if (ibt_enabled || shstk_enabled)
     {
       struct link_map *l = NULL;
 
