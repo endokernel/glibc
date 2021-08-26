@@ -1,7 +1,7 @@
 image: "ubuntu:20.10"
 
 before_script:
-  - apt-get update -qq && apt-get install -y -qq cmake bison gawk wget build-essential
+  - apt-get update -qq && apt-get install -y -qq cmake bison gawk wget build-essential python
 
 build-cet:
   script: 
