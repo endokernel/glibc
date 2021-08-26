@@ -1,0 +1,22 @@
+image: "ubuntu:20.10"
+
+before_script:
+  - apt-get update -qq && apt-get install -y -qq cmake bison gawk wget build-essential
+
+build-cet:
+  script: 
+    - mkdir build-cet 
+    - mkdir -p /opt/glibc-cet
+    - cd build-cet && ../configure --prefix=/opt/glibc-cet --with-tls --without-selinux --disable-test --disable-nscd --disable-sanity-checks --disable-werror --enable-cet=permissive "CFLAGS=-gdwarf-2 -g3 -O2 -U_FORTIFY_SOURCE -Wno-unused-value" && make -j && make install -j
+  artifacts:
+    paths:
+      - /opt/glibc-cet
+
+build-nocet:
+  script: 
+    - mkdir build-nocet 
+    - mkdir -p /opt/glibc-nocet
+    - cd build-cet && ../configure --prefix=/opt/glibc-nocet --with-tls --without-selinux --disable-test --disable-nscd --disable-sanity-checks --disable-werror "CFLAGS=-gdwarf-2 -g3 -O2 -U_FORTIFY_SOURCE -Wno-unused_Value" && make -j && make install -j
+  artifacts:
+    paths:
+      - /opt/glibc-nocet
