@@ -6,17 +6,17 @@ before_script:
 build-cet:
   script: 
     - mkdir build-cet 
-    - mkdir -p /opt/glibc-cet
-    - cd build-cet && ../configure --prefix=/opt/glibc-cet --with-tls --without-selinux --disable-test --disable-nscd --disable-sanity-checks --disable-werror --enable-cet=permissive "CFLAGS=-gdwarf-2 -g3 -O2 -U_FORTIFY_SOURCE -Wno-unused-value" && make -j && make install -j
+    - mkdir -p ./glibc-cet
+    - cd build-cet && ../configure --prefix=$PWD/../glibc-cet --with-tls --without-selinux --disable-test --disable-nscd --disable-sanity-checks --disable-werror --enable-cet=permissive "CFLAGS=-gdwarf-2 -g3 -O2 -U_FORTIFY_SOURCE -Wno-unused-value" && make -j && make install -j
   artifacts:
     paths:
-      - /opt/glibc-cet
+      - ./glibc-cet
 
 build-nocet:
   script: 
     - mkdir build-nocet 
-    - mkdir -p /opt/glibc-nocet
-    - cd build-cet && ../configure --prefix=/opt/glibc-nocet --with-tls --without-selinux --disable-test --disable-nscd --disable-sanity-checks --disable-werror "CFLAGS=-gdwarf-2 -g3 -O2 -U_FORTIFY_SOURCE -Wno-unused_Value" && make -j && make install -j
+    - mkdir -p ./glibc-nocet
+    - cd build-nocet && ../configure --prefix=$PWD/../glibc-nocet --with-tls --without-selinux --disable-test --disable-nscd --disable-sanity-checks --disable-werror "CFLAGS=-gdwarf-2 -g3 -O2 -U_FORTIFY_SOURCE -Wno-unused_Value" && make -j && make install -j
   artifacts:
     paths:
-      - /opt/glibc-nocet
+      - ./glibc-nocet
